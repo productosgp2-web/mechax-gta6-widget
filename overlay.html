@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MECHAX · GTA VI Sub Goal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Montserrat:wght@500;600;700;800;900&display=swap');
+:root{--pink:#ff4fa3;--cyan:#49e8f2;--orange:#ffb04a;--ink:#10101b}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:transparent;overflow:hidden}
+body{font-family:Montserrat,Arial,sans-serif;color:#fff}
+.widget{width:650px;padding:22px 26px 20px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.35);
+ border-radius:18px;background:linear-gradient(125deg,rgba(15,12,34,.94),rgba(40,15,50,.90) 55%,rgba(8,40,55,.92));
+ box-shadow:0 12px 38px rgba(0,0,0,.34),inset 0 0 35px rgba(73,232,242,.08)}
+.widget:before{content:"";position:absolute;inset:-2px;background:linear-gradient(110deg,transparent 12%,rgba(255,79,163,.23),transparent 40%,rgba(73,232,242,.2),transparent 70%);pointer-events:none}
+.sunset{position:absolute;width:180px;height:180px;right:-34px;top:-95px;border-radius:50%;background:linear-gradient(180deg,#ffb04a,#ff4fa3);filter:blur(2px);opacity:.27}
+.top{display:flex;align-items:center;justify-content:space-between;position:relative}
+.brand{font:900 35px/1 'Barlow Condensed',Impact,sans-serif;letter-spacing:2px;text-shadow:2px 2px 0 rgba(255,79,163,.8)}
+.brand span{color:var(--cyan)}
+.tag{font-size:10px;letter-spacing:2px;font-weight:800;color:var(--orange);border:1px solid rgba(255,176,74,.6);padding:7px 10px;border-radius:99px}
+.headline{text-align:center;margin:15px 0 17px;position:relative}
+.headline .eyebrow{font-size:10px;letter-spacing:4px;color:var(--cyan);font-weight:800}
+.headline h1{margin:2px 0 0;font:900 32px/1 'Barlow Condensed',Impact,sans-serif;letter-spacing:1.2px;text-transform:uppercase;text-shadow:0 0 18px rgba(255,79,163,.45)}
+.headline h1 em{font-style:normal;color:var(--pink)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;position:relative}
+.panel{background:rgba(4,9,24,.62);border:1px solid rgba(255,255,255,.17);border-radius:12px;padding:13px 15px}
+.label{font-size:10px;letter-spacing:1.4px;font-weight:800;color:var(--cyan);min-height:24px}
+.number{font:900 42px/.98 'Barlow Condensed',Impact,sans-serif;letter-spacing:1px;margin:3px 0 9px;text-shadow:0 0 15px rgba(73,232,242,.25)}
+.number small{font-size:20px;color:rgba(255,255,255,.7)}
+.track{height:9px;background:rgba(255,255,255,.14);border-radius:99px;overflow:hidden}
+.fill{height:100%;width:0;background:linear-gradient(90deg,var(--pink),#ff8b79,var(--orange));border-radius:99px;box-shadow:0 0 14px rgba(255,79,163,.65);transition:width .45s ease}
+.subnote{font-size:9px;letter-spacing:.7px;color:rgba(255,255,255,.72);margin-top:8px}
+.footer{text-align:center;margin-top:14px;font-size:11px;font-weight:800;letter-spacing:1.8px;color:var(--orange);position:relative}
+.footer b{color:var(--pink)}
+.flash{animation:flash .7s ease-in-out 3}
+@keyframes flash{50%{filter:brightness(1.8);transform:scale(1.015)}}
+@media(max-width:660px){.widget{width:100%}}
+</style>
+</head>
+<body>
+<div class="widget" id="widget">
+ <div class="sunset"></div>
+ <div class="top"><div class="brand">MECHA<span>X</span></div><div class="tag">VICE CITY · SUB GOAL</div></div>
+ <div class="headline"><div class="eyebrow">UN SORTEO CADA 30 SUBS</div><h1>PREMIO <em>GTA VI</em></h1></div>
+ <div class="grid">
+  <section class="panel">
+   <div class="label">PROGRESO PARA EL PRÓXIMO SORTEO</div>
+   <div class="number"><span id="goal">0</span><small> / 30</small></div>
+   <div class="track"><div class="fill" id="bar"></div></div>
+   <div class="subnote" id="remaining">30 SUBS PARA DESBLOQUEAR EL SORTEO</div>
+  </section>
+  <section class="panel">
+   <div class="label">SUSCRIPTORES ACTIVOS DEL CANAL</div>
+   <div class="number" id="active">—</div>
+   <div class="subnote">TOTAL ACTUAL DE SUBS ACTIVAS</div>
+  </section>
+ </div>
+ <div class="footer">¡CADA <b>30 SUBS</b>, UN NUEVO SORTEO!</div>
+</div>
+<script>
+/*
+  Integración: el servidor de Kick debe enviar:
+  { type:"snapshot", progress:0, activeSubscribers:0 }
+  { type:"subscription", progress:1, activeSubscribers:123 }
+  Para probar visualmente, abre overlay.html?demo=1
+*/
+const goalEl=document.getElementById('goal'), activeEl=document.getElementById('active');
+const bar=document.getElementById('bar'), remaining=document.getElementById('remaining');
+const widget=document.getElementById('widget');
+let progress=0;
+function render(data){
+  if(Number.isFinite(Number(data.progress))){
+    progress=Math.max(0,Math.min(29,Number(data.progress)));
+    goalEl.textContent=progress;
+    bar.style.width=(progress/30*100)+'%';
+    remaining.textContent=(30-progress)+' SUBS PARA DESBLOQUEAR EL SORTEO';
+  }
+  if(data.activeSubscribers!==undefined && data.activeSubscribers!==null) activeEl.textContent=Number(data.activeSubscribers).toLocaleString('es-ES');
+}
+function celebrate(){
+  widget.classList.remove('flash'); void widget.offsetWidth; widget.classList.add('flash');
+  goalEl.textContent='30'; bar.style.width='100%'; remaining.textContent='¡SORTEO DESBLOQUEADO!';
+  setTimeout(()=>render({progress:0}),2600);
+}
+window.addEventListener('message',e=>{
+  const d=e.data||{};
+  if(d.type==='snapshot'||d.type==='subscription') render(d);
+  if(d.type==='goal_reached') celebrate();
+});
+const params=new URLSearchParams(location.search);
+if(!params.has('demo')){
+ let lastCompleted=null;
+ async function poll(){try{const r=await fetch('/api/state',{cache:'no-store'});if(!r.ok)return;const d=await r.json();if(lastCompleted!==null && d.completed>lastCompleted)celebrate();lastCompleted=d.completed;render(d);}catch(e){console.warn('Sin conexión al servidor',e)}}
+ poll();setInterval(poll,5000);
+}
+if(params.has('demo')){
+  render({progress:18,activeSubscribers:247});
+  let n=18;
+  setInterval(()=>{n++; if(n>=30){celebrate();n=0;} render({progress:n,activeSubscribers:247+n});},1800);
+}
+</script>
+</body>
+</html>
